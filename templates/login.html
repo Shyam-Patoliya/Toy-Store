@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Login – ShopWave{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-bg"></div>
+    <div class="auth-container">
+        <div class="auth-logo">
+            <div class="logo-icon"
+                style="font-size:2.5rem; display:block; text-align:center; margin-bottom:8px; filter:drop-shadow(0 0 12px var(--primary));">
+                ⚡</div>
+            <div class="logo-text">ShopWave</div>
+        </div>
+
+        <div class="form-card fade-up">
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-subtitle">Sign in to continue shopping</p>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="you@example.com" required
+                        value="{{ request.form.get('email', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter your password"
+                        required>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="form-check">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px;">
+                    Sign In →
+                </button>
+            </form>
+
+            <div class="divider"><span>or</span></div>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="{{ url_for('register') }}">Create one free</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

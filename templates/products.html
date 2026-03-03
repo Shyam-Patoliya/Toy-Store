@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}All Products – ShopWave{% endblock %}
+{% block meta_description %}Browse all products – Electronics, Fashion, Accessories, Beauty & Home at ShopWave.{%
+endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{{ url_for('index') }}">Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>Products{% if selected_category %} / {{ selected_category }}{% endif %}</span>
+        </div>
+        <h1>{% if selected_category %}{{ selected_category }}{% elif search %}Results for "{{ search }}"{% else %}All
+            Products{% endif %}</h1>
+        <p>{{ products|length }} item{{ 's' if products|length != 1 else '' }} found</p>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Category Filter Pills -->
+        <div class="category-pills">
+            <a href="{{ url_for('products') }}"
+                class="pill {% if not selected_category and not search %}active{% endif %}">All</a>
+            {% for cat in categories %}
+            <a href="{{ url_for('products', category=cat) }}"
+                class="pill {% if selected_category == cat %}active{% endif %}">{{ cat }}</a>
+            {% endfor %}
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+            {% set discount = ((product.original_price - product.price) / product.original_price * 100)|int if
+            product.original_price else 0 %}
+            <div class="product-card">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-card-image">
+                    <img src="{{ url_for('product_image', filename=product.image_filename) }}" alt="{{ product.name }}"
+                        loading="lazy">
+                    {% if discount > 0 %}
+                    <span class="product-badge sale">{{ discount }}% OFF</span>
+                    {% endif %}
+                </a>
+                <div class="product-card-body">
+                    <div class="product-category">{{ product.category }}</div>
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-rating">
+                        <span class="stars">{% for i in range(5) %}{{ '★' if i < product.rating|int else '☆' }}{% endfor
+                                %}</span>
+                                <span class="rating-count">({{ product.reviews_count }})</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">₹{{ "%.0f"|format(product.price) }}</span>
+                        {% if product.original_price %}
+                        <span class="price-original">₹{{ "%.0f"|format(product.original_price) }}</span>
+                        <span class="price-discount">{{ discount }}% off</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="product-card-footer">
+                    {% if current_user.is_authenticated %}
+                    <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="next" value="{{ url_for('products', category=selected_category) }}">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 01-8 0" />
+                            </svg>
+                            Add to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline"
+                        style="width:100%;justify-content:center;">Login to Buy</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3>No products found</h3>
+            <p>Try a different category or search term.</p>
+            <a href="{{ url_for('products') }}" class="btn btn-primary">View All Products</a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}

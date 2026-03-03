@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Admin – Orders Dashboard – ShopWave{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+                <div class="breadcrumb"><a href="{{ url_for('index') }}">Home</a> <span class="breadcrumb-sep">›</span>
+                    <span>Admin</span> <span class="breadcrumb-sep">›</span> <span>Orders</span></div>
+                <h1>📦 Orders Dashboard</h1>
+                <p>All customer orders in one place</p>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 24px; text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:var(--accent);">{{ orders|length }}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">Total Orders</div>
+                </div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 24px; text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800; color:var(--warning);">{{ pending_count }}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">Pending</div>
+                </div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 24px; text-align:center;">
+                    <div style="font-size:1.6rem; font-weight:800;" class="gradient-text">₹{{
+                        "%.0f"|format(total_revenue) }}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Status filter tabs -->
+        <div class="category-pills" style="margin-bottom:28px;">
+            <a href="{{ url_for('admin_orders') }}" class="pill {% if not status_filter %}active{% endif %}">All</a>
+            {% for s in ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
+            <a href="{{ url_for('admin_orders', status=s) }}"
+                class="pill {% if status_filter == s %}active{% endif %}">{{ s }}</a>
+            {% endfor %}
+        </div>
+
+        {% if orders %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            {% for order in orders %}
+            {% set status_colors = {
+            'Pending': ('#f59e0b', 'rgba(245,158,11,0.1)', 'rgba(245,158,11,0.2)'),
+            'Processing': ('#3b82f6', 'rgba(59,130,246,0.1)', 'rgba(59,130,246,0.2)'),
+            'Shipped': ('#8b5cf6', 'rgba(139,92,246,0.1)', 'rgba(139,92,246,0.2)'),
+            'Delivered': ('#10b981', 'rgba(16,185,129,0.1)', 'rgba(16,185,129,0.2)'),
+            'Cancelled': ('#ef4444', 'rgba(239,68,68,0.1)', 'rgba(239,68,68,0.2)')
+            } %}
+            {% set sc = status_colors.get(order.status, ('#94a3b8','rgba(148,163,184,0.1)','rgba(148,163,184,0.2)')) %}
+            <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; display:grid; grid-template-columns:auto 1fr auto auto; gap:20px; align-items:center; transition:var(--transition);"
+                class="order-row">
+                <!-- Order ID & Date -->
+                <div>
+                    <div style="font-weight:800; font-size:1.05rem;">#{{ order.id }}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">{{
+                        order.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+                </div>
+
+                <!-- Customer & Items -->
+                <div>
+                    <div style="font-size:0.88rem; font-weight:600; margin-bottom:4px;">{{ order.user.name }}
+                        &nbsp;|&nbsp; <span style="color:var(--text-muted); font-weight:400;">{{ order.user.email
+                            }}</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">{{ order.items|length }} item{{ 's' if
+                        order.items|length != 1 }}: {% for oi in order.items[:2] %}{{ oi.product_name }}{% if not
+                        loop.last %}, {% endif %}{% endfor %}{% if order.items|length > 2 %} +{{ order.items|length - 2
+                        }} more{% endif %}</div>
+                    <div style="font-size:0.78rem; color:var(--text-dim); margin-top:4px;">📍 {{
+                        order.delivery_info[:60] }}{% if order.delivery_info|length > 60 %}…{% endif %}</div>
+                </div>
+
+                <!-- Total -->
+                <div style="text-align:right;">
+                    <div style="font-size:1.1rem; font-weight:800;" class="gradient-text">₹{{ "%.0f"|format(order.total)
+                        }}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">{{ 'Free shipping' if order.shipping == 0
+                        else '+ ₹' + order.shipping|int|string + ' shipping' }}</div>
+                </div>
+
+                <!-- Status + actions -->
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+                    <span style="padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:700;
+                                 color:{{ sc[0] }}; background:{{ sc[1] }}; border:1px solid {{ sc[2] }};">
+                        {{ order.status }}
+                    </span>
+                    <div style="display:flex; gap:8px;">
+                        <a href="{{ url_for('admin_order_detail', order_id=order.id) }}"
+                            class="btn btn-ghost btn-sm">View</a>
+                        <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="POST"
+                            style="display:flex; gap:6px;">
+                            <select name="status" class="form-control"
+                                style="padding:6px 10px; font-size:0.8rem; border-radius:8px; height:auto;">
+                                {% for s in ['Pending','Processing','Shipped','Delivered','Cancelled'] %}
+                                <option value="{{ s }}" {% if order.status==s %}selected{% endif %}>{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h3>No orders yet{% if status_filter %} with status "{{ status_filter }}"{% endif %}</h3>
+            <p>Orders placed by customers will appear here.</p>
+            {% if status_filter %}<a href="{{ url_for('admin_orders') }}" class="btn btn-primary">View All Orders</a>{%
+            endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<style>
+    .order-row:hover {
+        border-color: var(--border-hover) !important;
+        transform: translateX(2px);
+    }
+
+    @media (max-width: 768px) {
+        .order-row {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

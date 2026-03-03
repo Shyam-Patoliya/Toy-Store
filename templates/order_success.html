@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Order Placed! – ShopWave{% endblock %}
+
+{% block content %}
+<div class="success-page">
+    <div class="success-card fade-up">
+        <div class="success-icon">✓</div>
+        <h1>Order Placed!</h1>
+        <p>Thank you for shopping with ShopWave! Your order has been confirmed and will be delivered soon.</p>
+
+        <div class="delivery-info">
+            <strong>📦 Delivery Address</strong>
+            {{ delivery_info }}
+        </div>
+
+        <div class="order-details">
+            <h3
+                style="font-size:0.95rem; font-weight:700; margin-bottom:16px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">
+                Order Items</h3>
+            {% for item in order_items %}
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.9rem;">
+                <div>
+                    <div style="font-weight:600;">{{ item.name }}</div>
+                    <div style="color:var(--text-muted); font-size:0.8rem;">Qty: {{ item.qty }}</div>
+                </div>
+                <div style="font-weight:700;">₹{{ "%.0f"|format(item.price * item.qty) }}</div>
+            </div>
+            {% endfor %}
+            <div
+                style="display:flex; justify-content:space-between; padding:12px 0 4px; font-size:0.88rem; color:var(--text-muted);">
+                <span>Subtotal</span><span>₹{{ "%.0f"|format(subtotal) }}</span>
+            </div>
+            <div
+                style="display:flex; justify-content:space-between; padding:4px 0; font-size:0.88rem; color:var(--text-muted);">
+                <span>Shipping</span>
+                <span {% if shipping==0 %}style="color:var(--success); font-weight:600;" {% endif %}>{{ 'FREE' if
+                    shipping == 0 else '₹' + shipping|string }}</span>
+            </div>
+            <div
+                style="display:flex; justify-content:space-between; padding:14px 0 0; font-size:1.15rem; font-weight:800; border-top:1px solid var(--border); margin-top:8px;">
+                <span>Total Paid</span>
+                <span class="gradient-text">₹{{ "%.0f"|format(total) }}</span>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
+            <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">Continue Shopping</a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline btn-lg">Go Home</a>
+        </div>
+
+        <div
+            style="margin-top:32px; padding:16px; background:rgba(124,58,237,0.06); border:1px solid rgba(124,58,237,0.15); border-radius:var(--radius-sm); font-size:0.83rem; color:var(--text-dim);">
+            🚚 Expected delivery in <strong style="color:var(--text);">3–5 business days</strong>. Cash on Delivery –
+            pay when your order arrives.
+        </div>
+    </div>
+</div>
+{% endblock %}

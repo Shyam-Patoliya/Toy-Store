@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} – ShopWave{% endblock %}
+{% block meta_description %}{{ product.description[:160] }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="product-detail-layout">
+
+        <!-- ── Left: Image ──────────────────────────────────────────── -->
+        <div class="product-detail-image fade-up">
+            <div class="breadcrumb" style="margin-bottom:20px; padding-top:20px;">
+                <a href="{{ url_for('index') }}">Home</a>
+                <span class="breadcrumb-sep">›</span>
+                <a href="{{ url_for('products', category=product.category) }}">{{ product.category }}</a>
+                <span class="breadcrumb-sep">›</span>
+                <span>{{ product.name }}</span>
+            </div>
+            <div class="product-main-img">
+                <img src="{{ url_for('product_image', filename=product.image_filename) }}" alt="{{ product.name }}">
+            </div>
+        </div>
+
+        <!-- ── Right: Info ─────────────────────────────────────────── -->
+        <div class="product-detail-info fade-up fade-up-2" style="padding-top:60px;">
+            <div class="product-category">{{ product.category }}</div>
+            <h1>{{ product.name }}</h1>
+
+            <div class="product-rating" style="margin-bottom: 8px;">
+                <span class="stars" style="font-size:1rem;">{% for i in range(5) %}{{ '★' if i < product.rating|int
+                        else '☆' }}{% endfor %}</span>
+                        <span style="font-size:0.92rem; color:var(--text-muted); margin-left:6px;">{{ product.rating }}
+                            ({{ product.reviews_count }} reviews)</span>
+            </div>
+
+            <div class="product-detail-price">
+                <span class="current gradient-text">₹{{ "%.0f"|format(product.price) }}</span>
+                {% if product.original_price %}
+                <span class="original">₹{{ "%.0f"|format(product.original_price) }}</span>
+                {% set discount = ((product.original_price - product.price) / product.original_price * 100)|int %}
+                <span class="discount">{{ discount }}% OFF</span>
+                {% endif %}
+            </div>
+
+            <p class="product-description">{{ product.description }}</p>
+
+            {% if current_user.is_authenticated %}
+            <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST">
+                <div class="qty-add-row">
+                    <div class="qty-control qty-control-lg">
+                        <button type="button" class="qty-btn" data-action="minus">−</button>
+                        <input type="number" name="quantity" value="1" min="1" max="99" class="qty-val">
+                        <button type="button" class="qty-btn" data-action="plus">+</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                        </svg>
+                        Add to Cart
+                    </button>
+                </div>
+                <a href="{{ url_for('cart') }}" class="btn btn-outline"
+                    style="width:100%; margin-top:8px; justify-content:center;">View Cart</a>
+            </form>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">
+                Login to Add to Cart
+            </a>
+            {% endif %}
+
+            <div class="product-meta">
+                <div class="meta-row">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                    Free shipping on orders above ₹499
+                </div>
+                <div class="meta-row">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+                    </svg>
+                    7-day easy return policy
+                </div>
+                <div class="meta-row">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg>
+                    Secure, encrypted checkout
+                </div>
+                <div class="meta-row">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span style="color:var(--success);">In Stock</span> – Ships in 1–3 business days
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Related Products ─────────────────────────────────────────── -->
+{% if related %}
+<section class="section section-bg">
+    <div class="container">
+        <div class="section-header">
+            <h2>You May Also <span class="gradient-text">Like</span></h2>
+        </div>
+        <div class="related-grid">
+            {% for p in related %}
+            {% set d = ((p.original_price - p.price) / p.original_price * 100)|int if p.original_price else 0 %}
+            <div class="product-card">
+                <a href="{{ url_for('product_detail', product_id=p.id) }}" class="product-card-image">
+                    <img src="{{ url_for('product_image', filename=p.image_filename) }}" alt="{{ p.name }}"
+                        loading="lazy">
+                    {% if d > 0 %}<span class="product-badge sale">{{ d }}% OFF</span>{% endif %}
+                </a>
+                <div class="product-card-body">
+                    <div class="product-category">{{ p.category }}</div>
+                    <div class="product-name">{{ p.name }}</div>
+                    <div class="product-price">
+                        <span class="price-current">₹{{ "%.0f"|format(p.price) }}</span>
+                        {% if p.original_price %}<span class="price-original">₹{{ "%.0f"|format(p.original_price)
+                            }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="product-card-footer">
+                    <a href="{{ url_for('product_detail', product_id=p.id) }}" class="btn btn-outline"
+                        style="width:100%;justify-content:center;">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}

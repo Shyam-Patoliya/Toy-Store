@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} – Admin – ShopWave{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{{ url_for('index') }}">Home</a> <span class="breadcrumb-sep">›</span>
+            <a href="{{ url_for('admin_orders') }}">Orders</a> <span class="breadcrumb-sep">›</span>
+            <span>Order #{{ order.id }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+                <h1>Order #{{ order.id }}</h1>
+                <p>{{ order.created_at.strftime('%d %B %Y at %I:%M %p') }}</p>
+            </div>
+            <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="POST"
+                style="display:flex; gap:10px; align-items:center;">
+                <select name="status" class="form-control"
+                    style="padding:10px 16px; border-radius:10px; min-width:160px;">
+                    {% for s in ['Pending','Processing','Shipped','Delivered','Cancelled'] %}
+                    <option value="{{ s }}" {% if order.status==s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+                <a href="{{ url_for('admin_orders') }}" class="btn btn-outline">← Back</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+        <div style="display:grid; grid-template-columns:1fr 340px; gap:28px; align-items:start;">
+
+            <!-- Order Items -->
+            <div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:28px; margin-bottom:20px;">
+                    <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;">Order Items ({{ order.items|length
+                        }})</h3>
+                    {% for item in order.items %}
+                    <div
+                        style="display:grid; grid-template-columns:64px 1fr auto; gap:16px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border);">
+                        <div
+                            style="width:64px; height:64px; border-radius:10px; overflow:hidden; background:var(--bg-2);">
+                            {% if item.product_image %}
+                            <img src="{{ url_for('product_image', filename=item.product_image) }}"
+                                alt="{{ item.product_name }}" style="width:100%;height:100%;object-fit:cover;">
+                            {% else %}
+                            <div
+                                style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                                🧸</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600; font-size:0.95rem;">{{ item.product_name }}</div>
+                            <div style="font-size:0.82rem; color:var(--text-muted); margin-top:3px;">₹{{
+                                "%.0f"|format(item.price) }} × {{ item.quantity }}</div>
+                        </div>
+                        <div style="font-weight:700; font-size:1rem;">₹{{ "%.0f"|format(item.price * item.quantity) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div
+                        style="display:flex; justify-content:space-between; padding:12px 0 0; font-size:0.88rem; color:var(--text-muted);">
+                        <span>Subtotal</span><span>₹{{ "%.0f"|format(order.subtotal) }}</span>
+                    </div>
+                    <div
+                        style="display:flex; justify-content:space-between; padding:6px 0; font-size:0.88rem; color:var(--text-muted);">
+                        <span>Shipping</span>
+                        <span {% if order.shipping==0 %}style="color:var(--success);font-weight:600;" {% endif %}>{{
+                            'FREE' if order.shipping == 0 else '₹' + order.shipping|int|string }}</span>
+                    </div>
+                    <div
+                        style="display:flex; justify-content:space-between; padding:14px 0 0; font-size:1.15rem; font-weight:800; border-top:1px solid var(--border); margin-top:8px;">
+                        <span>Total</span><span class="gradient-text">₹{{ "%.0f"|format(order.total) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer & Delivery Info -->
+            <div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px;">
+                    <h3
+                        style="font-size:0.9rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">
+                        Customer</h3>
+                    <div style="font-weight:700; font-size:1rem; margin-bottom:4px;">{{ order.user.name }}</div>
+                    <div style="font-size:0.88rem; color:var(--text-muted);">{{ order.user.email }}</div>
+                    <div style="font-size:0.82rem; color:var(--text-dim); margin-top:4px;">Member since {{
+                        order.user.created_at.strftime('%b %Y') }}</div>
+                </div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px;">
+                    <h3
+                        style="font-size:0.9rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">
+                        📍 Delivery Address</h3>
+                    <div style="font-size:0.88rem; color:var(--text-muted); line-height:1.7;">{{ order.delivery_info }}
+                    </div>
+                </div>
+                <div
+                    style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px;">
+                    <h3
+                        style="font-size:0.9rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;">
+                        Status</h3>
+                    {% set status_colors = {
+                    'Pending': '#f59e0b', 'Processing': '#3b82f6', 'Shipped': '#8b5cf6',
+                    'Delivered': '#10b981', 'Cancelled': '#ef4444'
+                    } %}
+                    <span style="padding:6px 16px; border-radius:20px; font-size:0.85rem; font-weight:700;
+                                 color:{{ status_colors.get(order.status, '#94a3b8') }};
+                                 background:{{ status_colors.get(order.status, '#94a3b8') }}22;
+                                 border:1px solid {{ status_colors.get(order.status, '#94a3b8') }}44;">
+                        {{ order.status }}
+                    </span>
+                    <div style="font-size:0.78rem; color:var(--text-dim); margin-top:12px;">Payment: Cash on Delivery
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

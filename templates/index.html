@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}ShopWave – Premium Online Store{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ──────────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-content">
+        <div class="hero-text fade-up fade-up-1">
+            <div class="eyebrow">
+                <span>🔥</span> New Season Arrivals
+            </div>
+            <h1>Shop the <span class="gradient-text">Future.</span><br>Feel the Difference.</h1>
+            <p>Discover curated collections of electronics, fashion, and lifestyle products — all at unbeatable prices.
+                Free shipping on orders above ₹499.</p>
+            <div class="hero-actions">
+                <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">Shop Now</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-num gradient-text">13+</div>
+                    <div class="stat-label">Products</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num gradient-text">5★</div>
+                    <div class="stat-label">Avg Rating</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num gradient-text">Free</div>
+                    <div class="stat-label">Shipping ₹499+</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual fade-up fade-up-2">
+            {% for product in featured[:3] %}
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="hero-card">
+                <img src="{{ url_for('product_image', filename=product.image_filename) }}" alt="{{ product.name }}">
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── CATEGORIES ────────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Shop by <span class="gradient-text">Category</span></h2>
+            <p>Find exactly what you're looking for</p>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:16px;">
+            {% set cat_icons = {'Electronics': '⚡', 'Fashion': '👗', 'Accessories': '💎', 'Beauty': '✨', 'Home': '🏡'}
+            %}
+            {% for cat in categories %}
+            <a href="{{ url_for('products', category=cat) }}"
+                style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:28px 16px;
+                      background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+                      transition:var(--transition); text-align:center; color:var(--text-muted); font-weight:600; font-size:0.9rem;" class="category-link">
+                <span style="font-size:2rem;">{{ cat_icons.get(cat, '🛍️') }}</span>
+                {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURED PRODUCTS ─────────────────────────────────────────── -->
+<section class="section section-bg">
+    <div class="container">
+        <div class="section-header">
+            <h2>Featured <span class="gradient-text">Products</span></h2>
+            <p>Hand-picked items just for you</p>
+        </div>
+        <div class="products-grid">
+            {% for product in featured %}
+            {% set discount = ((product.original_price - product.price) / product.original_price * 100)|int if
+            product.original_price else 0 %}
+            <div class="product-card">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-card-image">
+                    <img src="{{ url_for('product_image', filename=product.image_filename) }}" alt="{{ product.name }}"
+                        loading="lazy">
+                    {% if discount > 0 %}
+                    <span class="product-badge sale">{{ discount }}% OFF</span>
+                    {% endif %}
+                </a>
+                <div class="product-card-body">
+                    <div class="product-category">{{ product.category }}</div>
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-rating">
+                        <span class="stars">{% for i in range(5) %}{{ '★' if i < product.rating|int else '☆' }}{% endfor
+                                %}</span>
+                                <span class="rating-count">({{ product.reviews_count }})</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">₹{{ "%.0f"|format(product.price) }}</span>
+                        {% if product.original_price %}
+                        <span class="price-original">₹{{ "%.0f"|format(product.original_price) }}</span>
+                        <span class="price-discount">{{ discount }}% off</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="product-card-footer">
+                    {% if current_user.is_authenticated %}
+                    <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="next" value="{{ url_for('index') }}">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 01-8 0" />
+                            </svg>
+                            Add to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline"
+                        style="width:100%;justify-content:center;">Login to Buy</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="text-align:center; margin-top:48px;">
+            <a href="{{ url_for('products') }}" class="btn btn-outline btn-lg">View All Products →</a>
+        </div>
+    </div>
+</section>
+
+<!-- ── PERKS BANNER ───────────────────────────────────────────────── -->
+<section class="section">
+    <div class="container">
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:24px;">
+            {% set perks = [
+            ('🚚', 'Free Shipping', 'On orders above ₹499'),
+            ('🔄', 'Easy Returns', '7-day hassle-free returns'),
+            ('🔒', 'Secure Payments', '100% safe & encrypted'),
+            ('💬', '24/7 Support', 'Here whenever you need us'),
+            ] %}
+            {% for icon, title, desc in perks %}
+            <div
+                style="display:flex; gap:16px; align-items:flex-start; padding:24px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);">
+                <span style="font-size:1.8rem;">{{ icon }}</span>
+                <div>
+                    <div style="font-weight:700; margin-bottom:4px; font-size:0.95rem;">{{ title }}</div>
+                    <div style="color:var(--text-muted); font-size:0.83rem;">{{ desc }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<style>
+    .category-link:hover {
+        border-color: var(--primary) !important;
+        color: var(--primary) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15);
+    }
+</style>
+
+{% endblock %}
