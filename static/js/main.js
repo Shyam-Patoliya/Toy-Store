@@ -141,3 +141,4 @@ document.addEventListener('change', e => {
         e.target.closest('form').submit();
     }
 });
+
