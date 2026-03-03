@@ -622,11 +622,12 @@ def update_products():
     print(f"✅ Products synced: {len(PRODUCTS)} active.")
 
 
-# ─── MAIN ─────────────────────────────────────────────────────────────────────
+# ─── INIT DB (runs under gunicorn AND python app.py) ──────────────────────────
+
+with app.app_context():
+    db.create_all()
+    seed_products()
+    update_products()
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        seed_products()
-        update_products()
     app.run(debug=True, port=5000)
