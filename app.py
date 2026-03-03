@@ -11,7 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Toy Store.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ─── Set your seller/admin email here ────────────────────────────────────────
-ADMIN_EMAIL = 'admin@Toy Store.com'   # ← change this to your email
+ADMIN_EMAIL = 'admin@toystore.com'   # ← change this to your email
 # ─────────────────────────────────────────────────────────────────────────────
 
 db = SQLAlchemy(app)
