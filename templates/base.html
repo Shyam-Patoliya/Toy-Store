@@ -59,6 +59,12 @@
                     </svg>
                     {{ current_user.name.split()[0] }}
                 </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
+                {% endif %}
+                <!-- Cart icon always visible -->
                 <a href="{{ url_for('cart') }}" class="nav-cart" id="cart-icon">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -69,12 +75,8 @@
                     <span class="cart-badge" id="cart-badge">{{ cart_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Logout</a>
-                {% else %}
-                <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Sign Up</a>
-                {% endif %}
             </div>
+
         </div>
     </nav>
 

@@ -104,9 +104,10 @@ def load_user(user_id):
 
 @app.context_processor
 def inject_cart_count():
-    cart_count = 0
     if current_user.is_authenticated:
         cart_count = CartItem.query.filter_by(user_id=current_user.id).count()
+    else:
+        cart_count = sum(session.get('cart', {}).values())
     return dict(cart_count=cart_count)
 
 
@@ -180,7 +181,14 @@ def register():
                 user.is_admin = True
             db.session.add(user)
             db.session.commit()
+            # Merge guest session cart into new account
+            guest_cart = session.pop('cart', {})
             login_user(user)
+            for pid_str, qty in guest_cart.items():
+                pid = int(pid_str)
+                db.session.add(CartItem(user_id=user.id, product_id=pid, quantity=qty))
+            if guest_cart:
+                db.session.commit()
             flash(f'Welcome, {name}! Your account has been created.', 'success')
             return redirect(url_for('index'))
     return render_template('register.html')
@@ -195,7 +203,18 @@ def login():
         password = request.form.get('password', '')
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
+            # Merge guest session cart into DB before logging in
+            guest_cart = session.pop('cart', {})
             login_user(user, remember=request.form.get('remember'))
+            for pid_str, qty in guest_cart.items():
+                pid = int(pid_str)
+                existing = CartItem.query.filter_by(user_id=user.id, product_id=pid).first()
+                if existing:
+                    existing.quantity += qty
+                else:
+                    db.session.add(CartItem(user_id=user.id, product_id=pid, quantity=qty))
+            if guest_cart:
+                db.session.commit()
             flash(f'Welcome back, {user.name}!', 'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('index'))
@@ -213,56 +232,102 @@ def logout():
 
 # ─── CART ─────────────────────────────────────────────────────────────────────
 
+def _session_cart_items():
+    """Return list of (product, quantity) tuples from session cart."""
+    cart = session.get('cart', {})
+    items = []
+    for pid_str, qty in cart.items():
+        product = Product.query.get(int(pid_str))
+        if product:
+            items.append({'product': product, 'quantity': qty,
+                          'id': None, 'session_key': pid_str})
+    return items
+
+
 @app.route('/cart')
-@login_required
 def cart():
-    items = CartItem.query.filter_by(user_id=current_user.id).all()
-    subtotal = sum(item.product.price * item.quantity for item in items)
-    shipping = 0 if subtotal >= 499 else 49
-    total = subtotal + shipping
-    return render_template('cart.html', items=items, subtotal=subtotal, shipping=shipping, total=total)
+    if current_user.is_authenticated:
+        items = CartItem.query.filter_by(user_id=current_user.id).all()
+        subtotal = sum(i.product.price * i.quantity for i in items)
+        shipping = 0 if subtotal >= 499 else 49
+        return render_template('cart.html', items=items, subtotal=subtotal,
+                               shipping=shipping, total=subtotal + shipping,
+                               is_guest=False)
+    else:
+        raw = session.get('cart', {})
+        items = []
+        for pid_str, qty in raw.items():
+            p = Product.query.get(int(pid_str))
+            if p:
+                items.append(type('GuestItem', (), {
+                    'id': None, 'product': p, 'quantity': qty,
+                    'session_key': pid_str
+                })())
+        subtotal = sum(i.product.price * i.quantity for i in items)
+        shipping = 0 if subtotal >= 499 else 49
+        return render_template('cart.html', items=items, subtotal=subtotal,
+                               shipping=shipping, total=subtotal + shipping,
+                               is_guest=True)
 
 
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
-@login_required
 def add_to_cart(product_id):
     product = Product.query.get_or_404(product_id)
     quantity = int(request.form.get('quantity', 1))
-    existing = CartItem.query.filter_by(user_id=current_user.id, product_id=product_id).first()
-    if existing:
-        existing.quantity += quantity
+    if current_user.is_authenticated:
+        existing = CartItem.query.filter_by(user_id=current_user.id, product_id=product_id).first()
+        if existing:
+            existing.quantity += quantity
+        else:
+            db.session.add(CartItem(user_id=current_user.id, product_id=product_id, quantity=quantity))
+        db.session.commit()
     else:
-        item = CartItem(user_id=current_user.id, product_id=product_id, quantity=quantity)
-        db.session.add(item)
-    db.session.commit()
+        cart = session.get('cart', {})
+        key = str(product_id)
+        cart[key] = cart.get(key, 0) + quantity
+        session['cart'] = cart
+        session.modified = True
     flash(f'"{product.name}" added to cart!', 'success')
-    next_page = request.form.get('next') or request.referrer or url_for('cart')
+    next_page = request.form.get('next') or request.referrer or url_for('products')
     return redirect(next_page)
 
 
 @app.route('/cart/update/<int:item_id>', methods=['POST'])
-@login_required
 def update_cart(item_id):
-    item = CartItem.query.get_or_404(item_id)
-    if item.user_id != current_user.id:
-        return redirect(url_for('cart'))
     quantity = int(request.form.get('quantity', 1))
-    if quantity <= 0:
-        db.session.delete(item)
+    if current_user.is_authenticated:
+        item = CartItem.query.get_or_404(item_id)
+        if item.user_id == current_user.id:
+            if quantity <= 0:
+                db.session.delete(item)
+            else:
+                item.quantity = quantity
+            db.session.commit()
     else:
-        item.quantity = quantity
-    db.session.commit()
+        cart = session.get('cart', {})
+        key = str(item_id)  # item_id is actually product_id for guest
+        if quantity <= 0:
+            cart.pop(key, None)
+        else:
+            cart[key] = quantity
+        session['cart'] = cart
+        session.modified = True
     return redirect(url_for('cart'))
 
 
 @app.route('/cart/remove/<int:item_id>', methods=['POST'])
-@login_required
 def remove_from_cart(item_id):
-    item = CartItem.query.get_or_404(item_id)
-    if item.user_id == current_user.id:
-        db.session.delete(item)
-        db.session.commit()
-        flash('Item removed from cart.', 'info')
+    if current_user.is_authenticated:
+        item = CartItem.query.get_or_404(item_id)
+        if item.user_id == current_user.id:
+            db.session.delete(item)
+            db.session.commit()
+    else:
+        cart = session.get('cart', {})
+        cart.pop(str(item_id), None)
+        session['cart'] = cart
+        session.modified = True
+    flash('Item removed from cart.', 'info')
     return redirect(url_for('cart'))
 
 

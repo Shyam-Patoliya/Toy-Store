@@ -1,34 +1,34 @@
 /* ─────────────────────────────────────────────────────────────────
-   Toy Store – Premium E-Commerce CSS
-   Design: Dark mode, glassmorphism, vivid purple/cyan accents
+   Toy Store – E-Commerce CSS
+   Design: Light mode, warm white/beige, soft purple accents
 ───────────────────────────────────────────────────────────────── */
 
 /* ── Variables ── */
 :root {
-    --bg: #07070f;
-    --bg-2: #0d0d1a;
-    --bg-card: rgba(255, 255, 255, 0.04);
-    --bg-card-hover: rgba(255, 255, 255, 0.08);
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(124, 58, 237, 0.5);
-    --primary: #7c3aed;
-    --primary-hover: #6d28d9;
-    --primary-glow: rgba(124, 58, 237, 0.3);
-    --accent: #06b6d4;
-    --accent-glow: rgba(6, 182, 212, 0.3);
-    --success: #10b981;
-    --error: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
-    --text: #f1f5f9;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
+    --bg: #f2ece0;
+    --bg-2: #e8dfd0;
+    --bg-card: #faf6ef;
+    --bg-card-hover: #f2e9da;
+    --border: rgba(100, 75, 50, 0.12);
+    --border-hover: rgba(194, 97, 44, 0.4);
+    --primary: #c2612c;
+    --primary-hover: #a8521f;
+    --primary-glow: rgba(194, 97, 44, 0.15);
+    --accent: #4a8c72;
+    --accent-glow: rgba(74, 140, 114, 0.15);
+    --success: #3d7a58;
+    --error: #b83232;
+    --warning: #c07c1a;
+    --info: #2e6fa8;
+    --text: #2c1a0e;
+    --text-muted: #7a6351;
+    --text-dim: #a89078;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --radius: 16px;
     --radius-sm: 10px;
     --radius-lg: 24px;
-    --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-primary: 0 8px 32px rgba(124, 58, 237, 0.25);
+    --shadow: 0 4px 20px rgba(80, 50, 20, 0.08);
+    --shadow-primary: 0 8px 28px rgba(194, 97, 44, 0.18);
     --nav-h: 72px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -87,8 +87,12 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--primary);
+    background: #c2a882;
     border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 /* ── Containers ── */
@@ -144,7 +148,7 @@ h4 {
     right: 0;
     height: var(--nav-h);
     z-index: 1000;
-    background: rgba(7, 7, 15, 0.85);
+    background: rgba(242, 236, 224, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
@@ -152,8 +156,8 @@ h4 {
 }
 
 .navbar.scrolled {
-    background: rgba(7, 7, 15, 0.95);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    background: rgba(242, 236, 224, 0.99);
+    box-shadow: 0 4px 20px rgba(80, 50, 20, 0.1);
 }
 
 .nav-container {
@@ -182,10 +186,8 @@ h4 {
 .logo-text {
     font-size: 1.4rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #a78bfa, #22d3ee);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary);
+    letter-spacing: -0.3px;
 }
 
 .nav-search {
@@ -330,7 +332,7 @@ h4 {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), #9333ea);
+    background: linear-gradient(135deg, var(--primary), #a84e22);
     color: white;
     box-shadow: 0 4px 20px var(--primary-glow);
 }
@@ -357,7 +359,7 @@ h4 {
 }
 
 .btn-accent {
-    background: linear-gradient(135deg, var(--accent), #0284c7);
+    background: linear-gradient(135deg, var(--accent), #3a7560);
     color: white;
     box-shadow: 0 4px 20px var(--accent-glow);
 }
@@ -368,13 +370,13 @@ h4 {
 }
 
 .btn-danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: rgba(184, 50, 50, 0.08);
+    color: var(--error);
+    border: 1px solid rgba(184, 50, 50, 0.2);
 }
 
 .btn-danger:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(184, 50, 50, 0.15);
 }
 
 .btn-ghost {
@@ -692,7 +694,7 @@ select.form-control {
 }
 
 select.form-control option {
-    background: #1e1e2e;
+    background: #faf6ef;
     color: var(--text);
 }
 
@@ -711,9 +713,9 @@ select.form-control option {
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(124, 58, 237, 0.12) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
-        var(--bg);
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(194, 97, 44, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(74, 140, 114, 0.05) 0%, transparent 60%),
+        linear-gradient(160deg, #f2ece0 0%, #e8dfd0 100%);
 }
 
 .hero-orb {
@@ -726,7 +728,7 @@ select.form-control option {
 .hero-orb-1 {
     width: 500px;
     height: 500px;
-    background: rgba(124, 58, 237, 0.15);
+    background: rgba(194, 97, 44, 0.07);
     top: -100px;
     right: -100px;
     animation-delay: 0s;
@@ -735,7 +737,7 @@ select.form-control option {
 .hero-orb-2 {
     width: 350px;
     height: 350px;
-    background: rgba(6, 182, 212, 0.1);
+    background: rgba(74, 140, 114, 0.06);
     bottom: -80px;
     left: -80px;
     animation-delay: 3s;
@@ -2032,7 +2034,7 @@ select.form-control option {
 }
 
 .product-card-image img {
-    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a40 50%, #1a1a2e 75%);
+    background: linear-gradient(90deg, #e8dfd0 25%, #ddd4c2 50%, #e8dfd0 75%);
     background-size: 600px 100%;
 }
 

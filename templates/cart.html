@@ -26,6 +26,7 @@
             <!-- Cart Items -->
             <div style="display:flex; flex-direction:column; gap:16px;">
                 {% for item in items %}
+                {% set item_key = item.id if not is_guest else item.session_key %}
                 <div class="cart-item">
                     <a href="{{ url_for('product_detail', product_id=item.product.id) }}" class="cart-item-image">
                         <img src="{{ url_for('product_image', filename=item.product.image_filename) }}"
@@ -39,7 +40,7 @@
                     </div>
                     <div class="cart-item-actions">
                         <div class="cart-item-total">₹{{ "%.0f"|format(item.product.price * item.quantity) }}</div>
-                        <form action="{{ url_for('update_cart', item_id=item.id) }}" method="POST" data-auto-submit>
+                        <form action="{{ url_for('update_cart', item_id=item_key) }}" method="POST" data-auto-submit>
                             <div class="qty-control">
                                 <button type="button" class="qty-btn" data-action="minus">−</button>
                                 <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="99"
@@ -47,7 +48,7 @@
                                 <button type="button" class="qty-btn" data-action="plus">+</button>
                             </div>
                         </form>
-                        <form action="{{ url_for('remove_from_cart', item_id=item.id) }}" method="POST">
+                        <form action="{{ url_for('remove_from_cart', item_id=item_key) }}" method="POST">
                             <button type="submit" class="btn btn-danger btn-sm">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -102,9 +103,25 @@
                     <span class="gradient-text">₹{{ "%.0f"|format(total) }}</span>
                 </div>
 
+                {% if is_guest %}
+                <div
+                    style="margin-top:20px; padding:16px; background:var(--bg-2); border-radius:var(--radius-sm); border:1px solid var(--border); text-align:center;">
+                    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+                        🔐 Please log in to place your order.<br>Your cart items will be saved!
+                    </p>
+                    <a href="{{ url_for('login', next=url_for('checkout')) }}" class="btn btn-primary btn-block">
+                        Login to Checkout
+                    </a>
+                    <a href="{{ url_for('register') }}"
+                        style="display:block; margin-top:10px; font-size:0.83rem; color:var(--text-muted);">
+                        Don't have an account? <span style="color:var(--primary); font-weight:600;">Register</span>
+                    </a>
+                </div>
+                {% else %}
                 <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block btn-lg" style="margin-top:20px;">
                     Proceed to Checkout →
                 </a>
+                {% endif %}
                 <div
                     style="text-align:center; margin-top:16px; font-size:0.78rem; color:var(--text-dim); display:flex; align-items:center; justify-content:center; gap:6px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,6 +132,7 @@
                 </div>
             </div>
         </div>
+
 
         {% else %}
         <!-- Empty Cart -->

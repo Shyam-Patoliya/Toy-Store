@@ -44,7 +44,6 @@
 
             <p class="product-description">{{ product.description }}</p>
 
-            {% if current_user.is_authenticated %}
             <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST">
                 <div class="qty-add-row">
                     <div class="qty-control qty-control-lg">
@@ -65,11 +64,6 @@
                 <a href="{{ url_for('cart') }}" class="btn btn-outline"
                     style="width:100%; margin-top:8px; justify-content:center;">View Cart</a>
             </form>
-            {% else %}
-            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg" style="width:100%; justify-content:center;">
-                Login to Add to Cart
-            </a>
-            {% endif %}
 
             <div class="product-meta">
                 <div class="meta-row">
